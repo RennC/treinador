@@ -114,3 +114,5 @@ pre { background: var(--bg); border-radius: 8px; padding: 10px; font-size: 12px;
 .notice.inline { margin: 8px 0; font-size: 14px; }
 .single { max-width: 520px; margin: 0 auto; padding: 16px; }
 body.training #classesPanel, body.busy header { pointer-events: none; opacity: .55; }
+
+#downloadButton { margin-bottom: 8px; }

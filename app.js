@@ -161,6 +161,7 @@ function dataChanged() {
 
 // Orienta o próximo passo. Mensagens de resultado ou erro ficam até os dados mudarem.
 function updateStatus() {
+  if ($('#downloadStatus')) $('#downloadStatus').hidden = true;
   let training = 'Pronto para treinar.';
   if (model && stale) training = 'As amostras mudaram. Treine novamente.';
   else if (project.classes.length < 2) training = 'Crie pelo menos 2 classes.';
@@ -327,6 +328,38 @@ async function publish(asNew) {
   }
 }
 
+// ---------- Baixar em arquivo ----------
+
+const safeFileName = name => name.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'projeto';
+
+// Um único arquivo com a estrutura, as classes e os pesos, para abrir sem publicar o modelo.
+async function download() {
+  if (busy || !model || stale) return;
+  const status = $('#downloadStatus');
+  const name = `${safeFileName(project.name)}-modelo.json`;
+  tester.stop();
+  setBusy(true);
+  status.hidden = false;
+  status.textContent = 'Preparando o arquivo…';
+  try {
+    const content = new Blob([JSON.stringify(await model.export())], { type: 'application/json' });
+    const link = el('a', { href: URL.createObjectURL(content), download: name });
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(link.href), 60000);
+    status.textContent = `Arquivo "${name}" enviado para a pasta de downloads.`;
+  } catch (error) {
+    status.textContent = `Não foi possível baixar: ${error.message || error}`;
+  } finally {
+    setBusy(false);
+  }
+}
+
+// O botão pode faltar por alguns minutos se o navegador ainda tiver a página antiga guardada.
+if ($('#downloadButton')) $('#downloadButton').onclick = download;
+
 // ---------- Configuração do GitHub ----------
 
 const GITHUB_FIELDS = { owner: '#ghOwner', repo: '#ghRepo', branch: '#ghBranch', token: '#ghToken', site: '#ghSite' };
@@ -394,6 +427,13 @@ function refresh() {
   const ready = Boolean(model) && !stale && !busy;
   $('#trainButton').disabled = busy || !canTrain();
   tester.update();
+
+  const downloadButton = $('#downloadButton');
+  if (downloadButton) {
+    // Por enquanto o arquivo só é lido pelo atalho do RAISE, testado com modelos de imagem.
+    downloadButton.hidden = project.type !== 'image';
+    downloadButton.disabled = !ready;
+  }
 
   const published = project.published;
   const updatable = Boolean(updatableLink());

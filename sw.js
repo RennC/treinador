@@ -1,13 +1,13 @@
 // Modo offline: guarda o app, as bibliotecas e os modelos base.
-const CACHE = 'treinador-v6';
+const CACHE = 'treinador-v8';
 // Caminhos relativos ao endereço do app, que no GitHub Pages fica em uma subpasta.
 const SHELL = ['./', 'styles.css', 'app.js', 'store.js', 'camera.js', 'cards.js', 'tester.js', 'results.js', 'home.js',
-  'publish.js', 'playground.js', 'preview.js', 'preview.html', 'brand/logo.webp',
+  'publish.js', 'playground.js', 'preview.js', 'preview.html', 'marca.css', 'festa.js', 'brand/zoom-logo.svg', 'brand/clube-inovacao.png',
   'engines/index.js', 'engines/common.js', 'engines/image.js', 'engines/pose.js', 'engines/audio.js',
   'manifest.webmanifest', 'icon-192.png', 'icon-512.png'].map(path => new URL(path, self.location).href);
 // TensorFlow.js 1.3.1: a biblioteca de pose não funciona com versões mais novas.
 const LIBS = [
-  'https://fonts.googleapis.com/css2?family=Bungee&family=Montserrat:wght@400;600;700&family=Poppins:wght@600&display=swap',
+  'https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&display=swap',
   'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js',
   'https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js',
   'https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8.6/dist/teachablemachine-pose.min.js',

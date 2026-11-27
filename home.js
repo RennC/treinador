@@ -15,6 +15,8 @@ const person = (leftArm, rightArm) => `<g fill="none" stroke="#212529" stroke-wi
 const wave = (heights, color) => heights.map((h, i) =>
   `<rect x="${14 + i * 10}" y="${48 - h / 2}" width="6" height="${h}" rx="3" fill="${color}"/>`).join('');
 
+const TITLE = { image: 'Imagens', pose: 'Poses', audio: 'Sons' };
+
 const ART = {
   image: art([photo(66, '#007ec2'), photo(30, '#ea590c'), photo(54, '#00679e')]),
   pose: art([person('M48 42 30 56 24 70', 'M48 42 66 56 72 70'), person('M48 42 28 40 18 26', 'M48 42 68 40 78 26'),
@@ -28,9 +30,9 @@ export function renderHome({ projects, onCreate, onOpen }) {
     const picture = el('span', { className: 'art' });
     picture.innerHTML = ART[engine.id];
     const button = el('button', { className: `type-card ${engine.id}` }, picture,
-      el('span', { className: 'type-title', textContent: `Projeto de ${engine.title.toLowerCase()}` }),
+      el('span', { className: 'type-title', textContent: TITLE[engine.id] }),
       el('span', { className: 'type-text', textContent: engine.description }),
-      el('span', { className: 'type-action', textContent: 'Criar projeto' }));
+      el('span', { className: 'type-action', textContent: 'Começar' }));
     button.onclick = () => onCreate(engine.id);
     return button;
   }));
@@ -40,9 +42,8 @@ export function renderHome({ projects, onCreate, onOpen }) {
   $('#recentList').replaceChildren(...recent.map(project => {
     const total = project.classes.reduce((sum, c) => sum + c.samples.length, 0);
     const button = el('button', { className: `recent-card ${project.type}` },
-      el('span', { className: 'chip', textContent: ENGINES[project.type].title }),
       el('strong', { textContent: project.name }),
-      el('span', { className: 'muted', textContent: `${project.classes.length} classes · ${total} amostra(s)${project.published ? ' · link publicado' : ''}` }));
+      el('span', { className: 'help', textContent: `${TITLE[project.type]} · ${total === 1 ? '1 exemplo' : `${total} exemplos`}` }));
     button.onclick = () => onOpen(project);
     return button;
   }));

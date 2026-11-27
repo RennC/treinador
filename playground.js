@@ -2,6 +2,8 @@
 // As duas páginas ficam no mesmo endereço (origem), por isso dividem o IndexedDB do navegador.
 // O banco, a chave e o formato são lidos por playground/modelo-local.js.
 export const PLAYGROUND_URL = '../playground/';
+// Abre a cópia em português, já com o projeto que usa o modelo.
+export const PLAYGROUND_START = `${PLAYGROUND_URL}?project=comecar.sb3&locale=pt-br`;
 
 const open = () => new Promise((resolve, reject) => {
   const req = indexedDB.open('treinador-playground', 1);

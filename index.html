@@ -3,137 +3,152 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#007ec2">
+  <meta name="theme-color" content="#00679e">
   <title>Treinador de Modelos · Zoom Education</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon-192.png">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&amp;family=Montserrat:wght@400;600;700&amp;family=Poppins:wght@600&amp;display=swap" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&amp;display=swap" crossorigin="anonymous">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="marca.css">
 </head>
 <body>
   <header>
-    <a class="brand" href="#">
-      <img src="brand/logo.webp" alt="Zoom Education for Life" width="157" height="40">
-      <span>Treinador de Modelos</span>
+    <a class="brand" href="#" aria-label="Treinador de Modelos, página inicial">
+      <img class="logo" src="brand/zoom-logo.svg" alt="ZOOM education for life" width="118" height="50">
+      <span class="emblem" aria-hidden="true"><img src="brand/clube-inovacao.png" alt=""><span class="chip"></span><span class="orbit"></span><span class="signal"></span></span>
+      <span class="title">Treinador de Modelos</span>
     </a>
+    <button id="calmButton" class="calm-button" aria-pressed="false">Parar animações</button>
     <div class="project-bar" id="projectBar" hidden>
-      <button id="homeButton" class="accent">Início</button>
-      <select id="projectSelect" aria-label="Projeto"></select>
-      <input id="projectName" aria-label="Nome do projeto" maxlength="60">
-      <button id="deleteProject" class="ghost danger">Excluir projeto</button>
+      <button id="homeButton"><span aria-hidden="true">←</span> Início</button>
+      <label class="project-name">Nome do projeto
+        <input id="projectName" maxlength="60">
+      </label>
     </div>
+    <div class="rail" aria-hidden="true"></div>
   </header>
 
-  <div id="notice" class="notice" role="status" hidden></div>
+  <div id="notice" class="notice" role="alert" hidden></div>
 
-  <div id="home" hidden>
-    <div class="hero">
-      <h1>O que você quer <em>ensinar à máquina?</em></h1>
-      <p>Escolha o tipo de modelo, colete amostras, treine no próprio tablet e gere o link para o seu aplicativo.</p>
+  <main id="home" class="page" hidden>
+    <div class="hello">
+      <svg viewBox="0 0 80 80" aria-hidden="true"><rect x="37" y="2" width="6" height="14" fill="#1b3766"/><circle cx="40" cy="6" r="6" fill="#fed500"/><rect x="8" y="14" width="64" height="60" rx="16" fill="#0082c6"/><circle cx="28" cy="40" r="9" fill="#fff"/><circle cx="52" cy="40" r="9" fill="#fff"/><circle cx="28" cy="40" r="4" fill="#1a1d20"/><circle cx="52" cy="40" r="4" fill="#1a1d20"/><path d="M26 58q14 10 28 0" stroke="#fed500" stroke-width="5" fill="none" stroke-linecap="round"/></svg>
+      <p class="bubble">Oi! Vamos aprender juntos?</p>
     </div>
-    <div class="home-content">
-      <div id="typeList" class="type-list"></div>
-      <section id="recent" aria-labelledby="recentTitle" hidden>
-        <h2 id="recentTitle">Seus projetos</h2>
-        <div id="recentList" class="recent-list"></div>
-      </section>
-    </div>
-  </div>
+    <h1>O que você quer ensinar ao computador?</h1>
+    <p class="lead">Escolha uma opção para começar.</p>
+    <div id="typeList" class="type-list"></div>
+    <section id="recent" aria-labelledby="recentTitle" hidden>
+      <h2 id="recentTitle">Continuar um projeto</h2>
+      <div id="recentList" class="recent-list"></div>
+    </section>
+  </main>
 
-  <main id="editor" class="editor" hidden>
-    <section id="classesPanel" aria-label="Classes">
-      <h2>1. Classes e amostras</h2>
+  <main id="editor" class="page" hidden>
+    <section id="classesPanel" class="step panel" aria-labelledby="classesTitle">
+      <h2 id="classesTitle"><span class="number">1</span> Ensine <span class="done" hidden>✓ Pronto</span></h2>
+      <p class="help">Cada <strong>classe</strong> é uma coisa que o computador vai aprender. Dê um nome e junte exemplos de cada uma.</p>
       <div id="classList"></div>
-      <button id="addClass" class="wide dashed">+ Adicionar classe</button>
+      <button id="addClass" class="wide dashed">+ Nova classe</button>
     </section>
 
-    <section id="trainPanel" class="panel" aria-label="Treinamento">
-      <h2>2. Treinamento</h2>
-      <button id="trainButton" class="accent wide">Treinar modelo</button>
-      <progress id="trainProgress" max="1" value="0" hidden></progress>
-      <p id="trainStatus" class="muted" aria-live="polite"></p>
+    <section id="trainPanel" class="step panel" aria-labelledby="trainTitle">
+      <h2 id="trainTitle"><span class="number">2</span> Treine <span class="done" hidden>✓ Pronto</span></h2>
+      <button id="trainButton" class="primary wide big">Treinar</button>
+      <progress id="trainProgress" max="1" value="0" aria-label="Andamento do treino" hidden></progress>
+      <p id="trainStatus" class="help" aria-live="polite"></p>
       <p id="trainWarning" class="notice inline" hidden></p>
-      <details>
-        <summary>Avançado</summary>
-        <label>Épocas <input id="epochs" type="number" min="1" max="1000" value="50"></label>
-        <label>Tamanho do lote
-          <select id="batchSize">
-            <option>16</option><option>32</option><option>64</option><option>128</option>
-          </select>
-        </label>
-        <label>Taxa de aprendizado <input id="learningRate" type="number" min="0.00001" max="1" step="0.0001" value="0.001"></label>
-      </details>
     </section>
 
-    <div class="column">
-      <section id="previewPanel" class="panel" aria-label="Teste">
-        <h2>3. Teste</h2>
-        <div id="previewCamera" class="camera" hidden>
-          <video playsinline muted autoplay></video>
-          <canvas id="overlay"></canvas>
-        </div>
-        <img id="previewImage" class="preview-image" alt="Imagem testada" hidden>
-        <p id="listening" class="muted" hidden>Ouvindo… os resultados aparecem em cerca de 1 segundo.</p>
-        <div class="row">
-          <button id="previewToggle" disabled>Ligar câmera</button>
-          <button id="previewSwitch" hidden>Trocar câmera</button>
-          <label class="button disabled" id="previewFileLabel">Testar imagem
-            <input id="previewFile" type="file" accept="image/*" hidden disabled>
-          </label>
-        </div>
-        <div id="predictions"></div>
-      </section>
-
-      <section id="exportPanel" class="panel" aria-label="Publicação">
-        <h2>4. Gerar link</h2>
-        <label id="keyRow" hidden>Chave de publicação
-          <input id="publishKey" type="password" autocomplete="off">
+    <section id="previewPanel" class="step panel" aria-labelledby="testTitle">
+      <h2 id="testTitle"><span class="number">3</span> Teste</h2>
+      <div id="previewCamera" class="camera" hidden>
+        <video playsinline muted autoplay aria-label="Imagem da câmera"></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      <img id="previewImage" class="preview-image" alt="Foto testada" hidden>
+      <p id="listening" class="help" hidden>Ouvindo… o resultado aparece em cerca de 1 segundo.</p>
+      <div class="row">
+        <button id="previewToggle" class="primary" disabled>Ligar câmera</button>
+        <button id="previewSwitch" hidden>Trocar câmera</button>
+        <label class="button disabled" id="previewFileLabel" tabindex="0">Testar uma foto
+          <input id="previewFile" type="file" accept="image/*" hidden disabled>
         </label>
-        <button id="publishButton" class="primary wide" disabled>Gerar link</button>
-        <button id="publishNewButton" class="ghost wide" hidden disabled>Gerar um link novo</button>
-        <p id="publishStatus" class="muted" aria-live="polite">Treine o modelo para publicar.</p>
-        <button id="downloadButton" class="wide" hidden disabled>Baixar modelo (arquivo)</button>
-        <p id="downloadStatus" class="muted" aria-live="polite" hidden></p>
-        <button id="playgroundButton" class="wide" hidden disabled>Enviar para o playground</button>
-        <p id="playgroundStatus" class="muted" aria-live="polite" hidden></p>
-        <a id="playgroundLink" class="button wide" target="treinador-playground" hidden>Abrir o playground</a>
-        <div id="linkBox" hidden>
-          <input id="modelLink" readonly aria-label="Link do modelo">
-          <div class="row">
-            <button id="copyLink">Copiar</button>
-            <button id="shareLink" hidden>Compartilhar</button>
-            <a id="openLink" class="button" target="_blank" rel="noopener">Abrir</a>
-          </div>
-          <details>
-            <summary>Como usar no aplicativo</summary>
-            <pre id="snippet"></pre>
-          </details>
+      </div>
+      <p id="winner" class="winner" aria-live="polite"></p>
+      <div id="predictions"></div>
+    </section>
+
+    <section id="usePanel" class="step panel" aria-labelledby="useTitle">
+      <h2 id="useTitle"><span class="number">4</span> Use</h2>
+      <p id="useHelp" class="help"></p>
+      <button id="playgroundButton" class="primary wide big" hidden disabled>Enviar para o playground</button>
+      <p id="playgroundStatus" class="help" aria-live="polite" hidden></p>
+      <a id="playgroundLink" class="button primary wide big" target="treinador-playground" hidden>Abrir o playground <span aria-hidden="true">→</span></a>
+    </section>
+
+    <details id="teacher" class="panel">
+      <summary>Opções do professor</summary>
+
+      <h3>Link do modelo</h3>
+      <label id="keyRow" class="field" hidden>Chave de publicação
+        <input id="publishKey" type="password" autocomplete="off">
+      </label>
+      <button id="publishButton" class="wide" disabled>Gerar link</button>
+      <button id="publishNewButton" class="wide" hidden disabled>Gerar um link novo</button>
+      <p id="publishStatus" class="help" aria-live="polite">Treine o modelo para publicar.</p>
+      <div id="linkBox" hidden>
+        <input id="modelLink" readonly aria-label="Link do modelo">
+        <div class="row">
+          <button id="copyLink">Copiar</button>
+          <button id="shareLink" hidden>Compartilhar</button>
+          <a id="openLink" class="button" target="_blank" rel="noopener">Abrir</a>
         </div>
-        <details id="githubPanel">
-          <summary>Publicação no GitHub Pages</summary>
-          <label class="field">Usuário ou organização
-            <input id="ghOwner" autocomplete="off" autocapitalize="off" spellcheck="false">
-          </label>
-          <label class="field">Repositório dos modelos
-            <input id="ghRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="modelos">
-          </label>
-          <label class="field">Branch
-            <input id="ghBranch" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="main">
-          </label>
-          <label class="field">Token de acesso
-            <input id="ghToken" type="password" autocomplete="off">
-          </label>
-          <label class="field">Endereço do site (opcional)
-            <input id="ghSite" type="url" autocomplete="off" placeholder="Só para domínio próprio">
-          </label>
-          <div class="row">
-            <button id="ghSave">Salvar e testar</button>
-            <button id="ghForget" class="ghost danger">Esquecer token</button>
-          </div>
-          <p id="ghStatus" class="muted" aria-live="polite">O token fica guardado somente neste aparelho.</p>
+        <details>
+          <summary>Como usar no aplicativo</summary>
+          <pre id="snippet"></pre>
         </details>
-      </section>
-    </div>
+      </div>
+      <details id="githubPanel">
+        <summary>Publicação no GitHub Pages</summary>
+        <label class="field">Usuário ou organização
+          <input id="ghOwner" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </label>
+        <label class="field">Repositório dos modelos
+          <input id="ghRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="modelos">
+        </label>
+        <label class="field">Branch
+          <input id="ghBranch" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="main">
+        </label>
+        <label class="field">Token de acesso
+          <input id="ghToken" type="password" autocomplete="off">
+        </label>
+        <label class="field">Endereço do site (opcional)
+          <input id="ghSite" type="url" autocomplete="off" placeholder="Só para domínio próprio">
+        </label>
+        <div class="row">
+          <button id="ghSave">Salvar e testar</button>
+          <button id="ghForget" class="danger">Esquecer token</button>
+        </div>
+        <p id="ghStatus" class="help" aria-live="polite">O token fica guardado somente neste aparelho.</p>
+      </details>
+
+      <h3>Arquivo do modelo</h3>
+      <button id="downloadButton" class="wide" hidden disabled>Baixar modelo (arquivo)</button>
+      <p id="downloadStatus" class="help" aria-live="polite" hidden></p>
+
+      <h3>Ajustes do treino</h3>
+      <label>Épocas <input id="epochs" type="number" min="1" max="1000" value="50"></label>
+      <label>Tamanho do lote
+        <select id="batchSize">
+          <option>16</option><option>32</option><option>64</option><option>128</option>
+        </select>
+      </label>
+      <label>Taxa de aprendizado <input id="learningRate" type="number" min="0.00001" max="1" step="0.0001" value="0.001"></label>
+
+      <h3>Projeto</h3>
+      <button id="deleteProject" class="danger wide">Excluir este projeto</button>
+    </details>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js" crossorigin="anonymous"></script>

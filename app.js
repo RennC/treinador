@@ -4,11 +4,12 @@ import { ENGINES } from './engines/index.js';
 import { classCard, stopRecording, el } from './cards.js';
 import { createTester } from './tester.js';
 import { renderHome } from './home.js';
+import { celebrate, setupCalmButton } from './festa.js';
 import {
   githubSettings, checkSettings, saveGitHubSettings, forgetGitHub, testGitHub, repoName, siteUrl,
   publishToGitHub, publishToServer, previewPage, waitUntilLive,
 } from './publish.js';
-import { PLAYGROUND_URL, sendToPlayground, hasPlayground } from './playground.js';
+import { PLAYGROUND_START, sendToPlayground, hasPlayground } from './playground.js';
 
 const $ = selector => document.querySelector(selector);
 const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -24,7 +25,7 @@ let publication = 0;
 let playgroundAvailable = false; // há uma cópia do playground ao lado do app
 
 const engine = () => ENGINES[project.type];
-const labelOf = (cls, index) => cls.name.trim() || `Class ${index + 1}`;
+const labelOf = (cls, index) => cls.name.trim() || `Classe ${index + 1}`;
 
 function notify(message) {
   $('#notice').textContent = message || '';
@@ -76,19 +77,11 @@ function save() {
   saveTimer = setTimeout(flush, 400);
 }
 
-const optionText = p => `${p.name} · ${ENGINES[p.type].title}`;
-
-function renderProjectList() {
-  $('#projectSelect').replaceChildren(...projects.map(p => el('option', { value: p.id, textContent: optionText(p) })));
-  $('#projectSelect').value = project.id;
-}
-
 function showProject(next) {
   releaseMedia();
   discardModel();
   project = next;
   localStorage.setItem('lastProject', project.id);
-  renderProjectList();
   $('#projectName').value = project.name;
   $('#epochs').value = project.params.epochs;
   $('#batchSize').value = project.params.batchSize;
@@ -113,6 +106,7 @@ function showView() {
   }
   $('#home').hidden = editing;
   $('#editor').hidden = $('#projectBar').hidden = !editing;
+  $('#teacher').open = false;
 }
 
 function openEditor() {
@@ -165,8 +159,8 @@ function dataChanged() {
 function updateStatus() {
   if ($('#downloadStatus')) $('#downloadStatus').hidden = true;
   hidePlaygroundResult();
-  let training = 'Pronto para treinar.';
-  if (model && stale) training = 'As amostras mudaram. Treine novamente.';
+  let training = 'Tudo pronto. Toque em Treinar.';
+  if (model && stale) training = 'Os exemplos mudaram. Toque em Treinar de novo.';
   else if (project.classes.length < 2) training = 'Crie pelo menos 2 classes.';
   else if (!canTrain()) training = engine().requirement;
   $('#trainStatus').textContent = training;
@@ -189,7 +183,7 @@ const cardContext = () => ({
     save();
   },
   remove(cls) {
-    if (cls.samples.length && !confirm(`Remover "${cls.name}" e suas ${cls.samples.length} amostras?`)) return;
+    if (cls.samples.length && !confirm(`Apagar "${cls.name}" e os ${cls.samples.length} exemplos dela?`)) return;
     releaseMedia();
     project.classes.splice(project.classes.indexOf(cls), 1);
     renderClasses();
@@ -233,7 +227,7 @@ function readParams() {
 async function train() {
   if (busy || !canTrain()) return;
   if (!window.tf) {
-    notify('As bibliotecas de IA não carregaram. Conecte à internet e recarregue a página.');
+    notify('Não consegui carregar. Verifique a internet e abra a página de novo.');
     return;
   }
   readParams();
@@ -242,7 +236,7 @@ async function train() {
   notify('');
   hidePlaygroundResult();
   setBusy(true);
-  document.body.classList.add('training');
+  $('#classesPanel').inert = true;
   const status = $('#trainStatus');
   const bar = $('#trainProgress');
   bar.hidden = false;
@@ -255,19 +249,18 @@ async function train() {
   try {
     const classes = project.classes.map((cls, index) => ({ name: labelOf(cls, index), samples: cls.samples }));
     model = await engine().train(classes, project.params, progress);
-    status.textContent = model.accuracy === undefined
-      ? 'Modelo treinado.'
-      : `Modelo treinado. Acerto na validação: ${Math.round(model.accuracy * 100)}%.`;
+    status.textContent = 'Oba! Treino concluído. Agora teste.';
+    celebrate();
     $('#trainWarning').textContent = model.warning || '';
     $('#trainWarning').hidden = !model.warning;
     $('#publishStatus').textContent = 'Modelo pronto para publicar.';
   } catch (error) {
     console.error(error);
-    status.textContent = 'O treinamento falhou.';
-    notify(`Erro no treinamento: ${error.message || error}`);
+    status.textContent = 'O treino não funcionou.';
+    notify(`O treino não funcionou. Tente de novo. (${error.message || error})`);
   } finally {
     bar.hidden = true;
-    document.body.classList.remove('training');
+    $('#classesPanel').inert = false;
     setBusy(false);
   }
 }
@@ -292,7 +285,7 @@ async function publish(asNew) {
   const status = $('#publishStatus');
   if (mode === 'github' && !settings) {
     status.textContent = 'Preencha "Publicação no GitHub Pages" e toque em Salvar.';
-    $('#githubPanel').open = true;
+    $('#teacher').open = $('#githubPanel').open = true;
     return;
   }
   const previous = asNew ? null : updatableLink();
@@ -381,9 +374,9 @@ async function toPlayground() {
   status.textContent = 'Enviando o modelo…';
   try {
     await sendToPlayground(await model.export(), project.name);
-    status.textContent = 'Modelo enviado. No playground, escreva modelo no bloco use model.';
+    status.textContent = 'Modelo enviado! Abra o playground e clique na bandeira verde.';
     // Um toque separado para abrir evita o bloqueio de janelas de alguns navegadores.
-    $('#playgroundLink').href = PLAYGROUND_URL;
+    $('#playgroundLink').href = PLAYGROUND_START;
     $('#playgroundLink').hidden = false;
   } catch (error) {
     status.textContent = `Não foi possível enviar: ${error.message || error}`;
@@ -450,10 +443,20 @@ $('#shareLink').onclick = () => navigator.share({ title: project.name, url: $('#
 
 // ---------- Estado da tela ----------
 
+// Explica ao estudante o que falta para usar o modelo.
+function updateUseHelp() {
+  let text = 'Treine o modelo primeiro.';
+  if (project.type !== 'image') text = 'Para usar este modelo em outro programa, peça ajuda ao professor.';
+  else if (!playgroundAvailable) text = 'O playground não está disponível neste endereço. Peça ajuda ao professor.';
+  else if (model && !stale) text = 'Mande o seu modelo para o playground e programe com ele.';
+  $('#useHelp').textContent = text;
+}
+
 function setBusy(value) {
   busy = value;
-  // Trocar ou excluir o projeto no meio de um treino/envio perderia o resultado.
-  document.body.classList.toggle('busy', value);
+  // Sair do projeto ou excluí-lo no meio de um treino/envio perderia o resultado.
+  $('header').inert = value;
+  $('#deleteProject').disabled = value;
   refresh();
 }
 
@@ -461,6 +464,9 @@ function refresh() {
   const ready = Boolean(model) && !stale && !busy;
   $('#trainButton').disabled = busy || !canTrain();
   tester.update();
+  $('#classesPanel .done').hidden = !canTrain();
+  $('#trainPanel .done').hidden = !model || stale;
+  updateUseHelp();
 
   const downloadButton = $('#downloadButton');
   if (downloadButton) {
@@ -497,20 +503,14 @@ for (const id of ['#epochs', '#batchSize', '#learningRate']) $(id).onchange = re
 $('#addClass').onclick = () => {
   releaseMedia();
   let number = project.classes.length + 1;
-  while (project.classes.some(c => c.name === `Class ${number}`)) number++;
-  project.classes.push({ id: newId(), name: `Class ${number}`, samples: [] });
+  while (project.classes.some(c => c.name === `Classe ${number}`)) number++;
+  project.classes.push({ id: newId(), name: `Classe ${number}`, samples: [] });
   $('#classList').append(classCard(project.classes.at(-1), cardContext()));
   dataChanged();
 };
 
-$('#projectSelect').onchange = async event => {
-  const next = projects.find(p => p.id === event.target.value);
-  await flush();
-  showProject(next);
-};
 $('#projectName').oninput = event => {
   project.name = event.target.value.trim() || 'Sem nome';
-  $('#projectSelect').selectedOptions[0].textContent = optionText(project);
   save();
 };
 
@@ -526,7 +526,7 @@ window.addEventListener('hashchange', () => {
 });
 
 $('#deleteProject').onclick = async () => {
-  if (!confirm(`Excluir o projeto "${project.name}" deste tablet? Links já publicados continuam no ar.`)) return;
+  if (!confirm(`Excluir o projeto "${project.name}" deste aparelho? Links já publicados continuam no ar.`)) return;
   clearTimeout(saveTimer);
   saveTimer = null;
   releaseMedia();
@@ -571,5 +571,15 @@ async function start() {
   $('#githubPanel').open = publishMode() === 'github' && !githubSettings();
   if (project) refresh();
 }
+
+setupCalmButton($('#calmButton'));
+
+// Os botões que abrem arquivos também funcionam pelo teclado.
+document.addEventListener('keydown', event => {
+  if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('label.button')) {
+    event.preventDefault();
+    event.target.querySelector('input').click();
+  }
+});
 
 start().catch(error => notify(`Não foi possível iniciar o aplicativo: ${error.message || error}`));

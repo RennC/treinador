@@ -113,12 +113,12 @@ export function thumbnail({ data, frameSize }) {
 export default {
   id: 'audio',
   title: 'Áudio',
-  description: 'Reconhece sons de 1 segundo captados pelo microfone.',
+  description: 'O computador aprende a reconhecer palavras, palmas e outros sons.',
   media: 'microphone',
   params: { epochs: 50, batchSize: 16, learningRate: 0.001 },
   minimum: index => index === 0 ? 20 : 8,
-  requirement: 'Grave pelo menos 20 amostras de ruído de fundo e 8 em cada outra classe.',
-  defaultClasses: () => [NOISE, 'Class 2'],
+  requirement: 'Grave 20 vezes o som do ambiente e 8 vezes cada outra classe.',
+  defaultClasses: () => [NOISE, 'Classe 2'],
 
   record() {
     const result = queue.then(recordOne);

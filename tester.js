@@ -15,6 +15,7 @@ export function createTester({ getTarget, notify, beforeStart = () => {} }) {
   function clear() {
     run++;
     $('#predictions').replaceChildren();
+    if ($('#winner')) $('#winner').textContent = '';
     $('#previewImage').hidden = true;
   }
 

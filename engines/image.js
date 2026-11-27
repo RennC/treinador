@@ -17,13 +17,13 @@ function wrap(net, accuracy) {
 export default {
   id: 'image',
   title: 'Imagem',
-  description: 'Reconhece o que aparece em fotos ou na câmera.',
+  description: 'O computador aprende a reconhecer objetos, desenhos ou gestos.',
   media: 'camera',
   sampleSize: 224,
   params: { epochs: 50, batchSize: 16, learningRate: 0.001 },
   minimum: () => 5,
-  requirement: 'Colete pelo menos 5 amostras em cada classe.',
-  defaultClasses: () => ['Class 1', 'Class 2'],
+  requirement: 'Tire pelo menos 5 fotos em cada classe.',
+  defaultClasses: () => ['Classe 1', 'Classe 2'],
 
   async train(classes, params, progress) {
     progress(null, 'Carregando o modelo base…');

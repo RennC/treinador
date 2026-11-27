@@ -1,6 +1,6 @@
 // Cartões de classe: coleta por câmera (imagem e pose) ou por microfone (áudio).
 import { openCamera, closeCamera, switchCamera, grabFrame, fileToCanvas } from './camera.js';
-import { thumbnail, NOISE } from './engines/audio.js';
+import { thumbnail } from './engines/audio.js';
 
 const MAX_SAMPLES = 500;
 
@@ -39,17 +39,23 @@ export function classCard(cls, context) {
   const { engine, project, notify } = context;
   const audio = engine.media === 'microphone';
   const noise = audio && project.classes.indexOf(cls) === 0;
-  const count = el('span', { className: 'muted' });
+  const count = el('p', { className: 'count' });
+  count.setAttribute('aria-live', 'polite');
   const thumbs = el('div', { className: audio ? 'thumbs audio' : 'thumbs' });
 
   const updateCount = () => {
     const minimum = engine.minimum(project.classes.indexOf(cls));
-    count.textContent = `${cls.samples.length} amostra(s) · mínimo ${minimum}`;
+    const total = cls.samples.length;
+    const missing = minimum - total;
+    count.textContent = missing > 0
+      ? `${missing === 1 ? 'Falta 1 exemplo' : `Faltam ${missing} exemplos`}. Você tem ${total}.`
+      : `✓ ${total} exemplos. Já dá para treinar.`;
+    count.classList.toggle('enough', missing <= 0);
   };
 
   const addThumb = sample => {
     const src = audio ? thumbnail(sample) : sample;
-    const button = el('button', { ariaLabel: 'Excluir amostra' }, el('img', { src, alt: '' }));
+    const button = el('button', { ariaLabel: 'Apagar este exemplo (toque duas vezes)' }, el('img', { src, alt: '' }));
     let timer;
     // Dois toques para excluir, para evitar apagar sem querer.
     button.onclick = () => {
@@ -69,7 +75,7 @@ export function classCard(cls, context) {
 
   const addSample = sample => {
     if (cls.samples.length >= MAX_SAMPLES) {
-      notify(`Cada classe aceita até ${MAX_SAMPLES} amostras.`);
+      notify(`Cada classe aceita até ${MAX_SAMPLES} exemplos.`);
       return false;
     }
     cls.samples.push(sample);
@@ -80,14 +86,15 @@ export function classCard(cls, context) {
     return true;
   };
 
-  const name = el('input', { value: cls.name, maxLength: 60, ariaLabel: 'Nome da classe', readOnly: noise });
+  const name = el('input', { value: cls.name, maxLength: 60, readOnly: noise });
   name.oninput = () => {
     cls.name = name.value;
     context.renamed(cls);
   };
-  const head = el('div', { className: 'class-head' }, name);
+  const head = el('div', { className: 'class-head' },
+    el('label', {}, noise ? 'Som do ambiente' : 'Nome da classe', name));
   if (!noise) {
-    head.append(el('button', { className: 'ghost danger', textContent: 'Remover', onclick: () => context.remove(cls) }));
+    head.append(el('button', { className: 'danger', textContent: 'Apagar classe', onclick: () => context.remove(cls) }));
   }
 
   const controls = audio
@@ -97,22 +104,22 @@ export function classCard(cls, context) {
   cls.samples.forEach(addThumb);
   updateCount();
   return el('article', { className: 'class-card' }, head,
-    el('div', { className: 'row' }, ...controls.buttons, count), ...controls.panels, thumbs);
+    el('div', { className: 'row' }, ...controls.buttons), ...controls.panels, count, thumbs);
 }
 
 function audioControls({ context, addSample, noise }) {
   const { engine, notify } = context;
-  const status = el('p', { className: 'muted', hidden: true });
+  const status = el('p', { className: 'help', hidden: true });
   status.setAttribute('aria-live', 'polite');
-  const one = el('button', { textContent: 'Gravar 1 s' });
-  const many = el('button', { textContent: 'Gravar em sequência' });
+  const one = el('button', { className: 'primary', textContent: 'Gravar 1 vez' });
+  const many = el('button', { textContent: 'Gravar várias vezes' });
 
   const start = async continuous => {
     context.beforeCapture();
     notify('');
     let cancelled = false;
     const reset = () => {
-      many.textContent = 'Gravar em sequência';
+      many.textContent = 'Gravar várias vezes';
       many.classList.remove('recording');
       one.disabled = many.disabled = false;
       status.hidden = true;
@@ -130,7 +137,7 @@ function audioControls({ context, addSample, noise }) {
       let recorded = 0;
       do {
         const pending = engine.record();
-        status.textContent = recorded ? `Gravando… ${recorded} amostra(s) nesta sequência` : 'Gravando…';
+        status.textContent = recorded ? `Gravando… já foram ${recorded}` : 'Gravando…';
         const sample = await pending;
         if (cancelled || !addSample(sample)) break;
         recorded++;
@@ -148,10 +155,10 @@ function audioControls({ context, addSample, noise }) {
   many.onclick = () => many.classList.contains('recording') ? stopRecording() : start(true);
 
   const hint = el('p', {
-    className: 'muted',
+    className: 'help',
     textContent: noise
-      ? `"${NOISE}": grave o som do ambiente, sem falar nem fazer o som das outras classes.`
-      : 'Faça o som durante a gravação. Cada amostra tem 1 segundo.',
+      ? 'Fique em silêncio e grave o som da sala.'
+      : 'Faça o som enquanto grava. Cada gravação dura 1 segundo.',
   });
   return { buttons: [one, many], panels: [hint, status] };
 }
@@ -159,19 +166,22 @@ function audioControls({ context, addSample, noise }) {
 function cameraControls({ context, addSample }) {
   const { engine, notify } = context;
   const video = el('video', { muted: true, playsInline: true, autoplay: true });
-  const record = el('button', { className: 'primary record', textContent: 'Segure para capturar' });
+  const record = el('button', { className: 'primary record', textContent: 'Tirar foto' });
   const flip = el('button', { textContent: 'Trocar câmera' });
-  const close = el('button', { textContent: 'Fechar', onclick: closeCamera });
+  const close = el('button', { textContent: 'Fechar câmera', onclick: closeCamera });
   const capture = el('div', { className: 'capture', hidden: true },
     el('div', { className: 'camera' }, video),
+    el('p', { className: 'help', textContent: 'Toque para tirar uma foto. Segure para tirar várias.' }),
     el('div', { className: 'row' }, record, flip, close));
 
   const toSample = canvas => canvas.toDataURL('image/jpeg', 0.92);
 
   let interval = null;
+  let delay = null;
   const stop = () => {
+    clearTimeout(delay);
     clearInterval(interval);
-    interval = null;
+    interval = delay = null;
     record.classList.remove('recording');
   };
   const shoot = () => {
@@ -179,18 +189,22 @@ function cameraControls({ context, addSample }) {
     if (frame && !addSample(toSample(frame))) stop();
   };
   record.onpointerdown = event => {
-    if (event.button !== 0 || interval) return;
+    if (event.button !== 0 || delay) return;
     record.setPointerCapture(event.pointerId);
-    record.classList.add('recording');
-    interval = setInterval(shoot, 120);
     shoot();
+    // Um toque rápido tira só uma foto; a sequência começa depois de segurar um instante.
+    delay = setTimeout(() => {
+      record.classList.add('recording');
+      interval = setInterval(shoot, 150);
+    }, 500);
   };
   record.onpointerup = record.onpointercancel = record.onlostpointercapture = stop;
-  record.onkeydown = event => { if ((event.key === 'Enter' || event.key === ' ') && !event.repeat) shoot(); };
+  // Teclado e leitores de tela acionam o botão sem ponteiro (detail igual a 0).
+  record.onclick = event => { if (event.detail === 0) shoot(); };
   record.oncontextmenu = event => event.preventDefault();
   flip.onclick = () => switchCamera().catch(error => notify(mediaError(error)));
 
-  const cameraButton = el('button', { textContent: 'Câmera' });
+  const cameraButton = el('button', { className: 'primary', textContent: 'Usar a câmera' });
   cameraButton.onclick = async () => {
     context.beforeCapture();
     notify('');
@@ -217,5 +231,6 @@ function cameraControls({ context, addSample }) {
     if (failed) notify(`${failed} arquivo(s) não puderam ser lidos como imagem.`);
   };
 
-  return { buttons: [cameraButton, el('label', { className: 'button' }, 'Imagens', file)], panels: [capture] };
+  const choose = el('label', { className: 'button', tabIndex: 0 }, 'Escolher fotos', file);
+  return { buttons: [cameraButton, choose], panels: [capture] };
 }

@@ -11,7 +11,7 @@ export function loadScript(url) {
       script.onerror = () => {
         loaded.delete(url);
         script.remove();
-        reject(new Error('As bibliotecas de IA não carregaram. Conecte à internet e tente de novo.'));
+        reject(new Error('Não consegui carregar. Verifique a internet e tente de novo.'));
       };
       document.head.append(script);
     }));
@@ -23,7 +23,7 @@ export function loadScript(url) {
 export const loadImage = src => new Promise((resolve, reject) => {
   const image = new Image();
   image.onload = () => resolve(image);
-  image.onerror = () => reject(new Error('Uma amostra salva está corrompida.'));
+  image.onerror = () => reject(new Error('Um exemplo salvo está com defeito. Apague e junte de novo.'));
   image.src = src;
 });
 
@@ -62,7 +62,7 @@ export async function forEachSample(classes, progress, handle) {
     for (const sample of cls.samples) {
       await handle(index, sample);
       if (++done % 5 === 0 || done === total) {
-        progress(done / total, `Preparando amostras: ${done} de ${total}`);
+        progress(done / total, `Olhando os exemplos: ${done} de ${total}`);
         await new Promise(resolve => setTimeout(resolve));
       }
     }
@@ -72,7 +72,7 @@ export async function forEachSample(classes, progress, handle) {
 export const epochCallbacks = (epochs, progress, last) => ({
   onEpochEnd: async (epoch, logs) => {
     Object.assign(last, logs);
-    progress((epoch + 1) / epochs, `Treinando: época ${epoch + 1} de ${epochs}`);
+    progress((epoch + 1) / epochs, `Treinando… ${Math.round((epoch + 1) / epochs * 100)}%`);
     await tf.nextFrame();
   },
 });

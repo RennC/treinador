@@ -15,13 +15,13 @@ async function classify(net, canvas) {
 export default {
   id: 'pose',
   title: 'Pose',
-  description: 'Reconhece posições do corpo pela câmera ou por fotos.',
+  description: 'O computador aprende a reconhecer posições do corpo.',
   media: 'camera',
   sampleSize: 257,
   params: { epochs: 50, batchSize: 16, learningRate: 0.0001 },
   minimum: () => 5,
-  requirement: 'Colete pelo menos 5 amostras em cada classe, com o corpo visível.',
-  defaultClasses: () => ['Class 1', 'Class 2'],
+  requirement: 'Tire pelo menos 5 fotos em cada classe, mostrando o corpo.',
+  defaultClasses: () => ['Classe 1', 'Classe 2'],
 
   drawPose(context, pose) {
     tmPose.drawKeypoints(pose.keypoints, 0.5, context);

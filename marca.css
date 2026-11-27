@@ -1,0 +1,91 @@
+/* Assinatura da Zoom, adaptada do zoom-atendimento-mvp (vetor, selo animado e fio colorido),
+   e os enfeites para as crianças. Tudo para quando o aparelho pede menos movimento
+   ou quando se toca em "Parar animações". */
+:root { --zoom-blue: #0082c6; --zoom-green: #b2d235; --zoom-yellow: #fed500; --zoom-orange: #f26522; }
+
+body { background-image:
+  radial-gradient(circle at 12px 12px, #0082c61f 5px, transparent 6px),
+  radial-gradient(circle at 70px 60px, #f265221f 7px, transparent 8px),
+  radial-gradient(circle at 30px 100px, #b2d23540 6px, transparent 7px),
+  radial-gradient(circle at 105px 125px, #fed50050 4px, transparent 5px);
+  background-size: 140px 150px; }
+
+header { position: relative; border-bottom: 0; padding-bottom: 0.9rem; }
+.brand .logo { width: 118px; height: 50px; }
+.brand .title { border: 0; padding: 0; color: var(--navy); font-size: 1.15rem; line-height: 1.2; }
+
+/* Selo com o chip e a órbita animados. */
+.emblem { position: relative; display: inline-block; width: 4.25rem; height: 4.25rem; flex: none; isolation: isolate; }
+.emblem img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.emblem .orbit { position: absolute; inset: -3px; border: 2px solid transparent; border-left-color: var(--zoom-green); border-top-color: var(--zoom-blue); border-radius: 50%; transform: rotate(-20deg); pointer-events: none; }
+.emblem .signal { position: absolute; inset: -3px; border-radius: 50%; pointer-events: none; animation: orbit 5.5s linear infinite; }
+.emblem .signal::before { content: ""; position: absolute; width: 8px; height: 8px; top: -3px; left: calc(50% - 4px); border-radius: 50%; background: var(--zoom-orange); box-shadow: 0 0 7px #f2652299; }
+.emblem .chip { position: absolute; left: 27%; top: 30%; width: 46%; height: 36%; border: 1px solid var(--zoom-blue); border-radius: 3px; pointer-events: none; animation: chip 5.5s ease-in-out infinite; }
+.emblem .chip::before, .emblem .chip::after { content: ""; position: absolute; top: 18%; width: 2px; height: 3px; background: #59c9ff; box-shadow: 0 5px #59c9ff, 0 10px var(--zoom-yellow); animation: pins 5.5s ease-in-out infinite; }
+.emblem .chip::before { left: -4px; }
+.emblem .chip::after { right: -4px; animation-delay: 0.2s; }
+
+/* Fio nas quatro cores, com um brilho que passa. */
+.rail { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; overflow: hidden; background: linear-gradient(90deg, var(--zoom-blue) 0 44%, var(--zoom-green) 44% 64%, var(--zoom-yellow) 64% 82%, var(--zoom-orange) 82%); }
+.rail::after { content: ""; position: absolute; left: -60px; width: 50px; height: 100%; background: linear-gradient(90deg, transparent, #fff, transparent); animation: rail 5.5s ease-in-out infinite; }
+.calm-button { font-size: 0.85rem; }
+.project-bar { flex-basis: 100%; }
+#classesPanel { border-top-color: var(--zoom-yellow); }
+
+/* ---------- Tela inicial ---------- */
+.hello { display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-top: 0.5rem; }
+.hello svg { width: 5.5rem; height: 5.5rem; flex: none; animation: float 3s ease-in-out infinite; }
+.bubble { position: relative; background: var(--card); border: 3px solid var(--zoom-blue); border-radius: 1.2rem; padding: 0.6rem 1rem; font-weight: 700; color: var(--navy); }
+.bubble::before { content: ""; position: absolute; left: -9px; top: 50%; width: 12px; height: 12px; margin-top: -6px; background: var(--card); border-left: 3px solid var(--zoom-blue); border-bottom: 3px solid var(--zoom-blue); transform: rotate(45deg); }
+.type-card { border-width: 4px; border-radius: 1.5rem; box-shadow: 0 6px 0 #0000001f; }
+.type-card:hover .art svg, .type-card:focus-visible .art svg { animation: wiggle 0.7s ease-in-out; }
+.type-card.pose { border-color: var(--zoom-orange); }
+.type-card.pose .art { background: #fdeade; }
+.type-card.pose .type-action { background: var(--orange); }
+.type-card.audio { border-color: #7f9a12; }
+.type-card.audio .art { background: #eff6d3; }
+.type-card.audio .type-action { background: var(--zoom-green); color: var(--text); }
+
+/* ---------- Passos ---------- */
+#classesPanel .number { background: var(--zoom-yellow); }
+#trainPanel .number { background: var(--zoom-green); }
+#previewPanel .number { background: var(--zoom-orange); }
+#usePanel .number { background: var(--blue); color: #fff; }
+.number { width: 2.75rem; height: 2.75rem; box-shadow: 0 3px 0 #0003; }
+.step.panel { border-top-width: 8px; border-radius: 1.4rem; }
+#trainPanel { border-top-color: var(--zoom-green); }
+#previewPanel { border-top-color: var(--zoom-orange); }
+#usePanel { border-top-color: var(--zoom-blue); }
+.class-card { border-radius: 1.2rem; }
+.class-card:nth-child(4n+2) { border-left-color: var(--zoom-orange); }
+.class-card:nth-child(4n+3) { border-left-color: var(--zoom-green); }
+.class-card:nth-child(4n+4) { border-left-color: var(--zoom-yellow); }
+.bar i { background: var(--zoom-blue); }
+.prediction:nth-child(4n+2) .bar i { background: var(--zoom-orange); }
+.prediction:nth-child(4n+3) .bar i { background: #7f9a12; }
+.prediction:nth-child(4n+4) .bar i { background: var(--zoom-yellow); }
+.winner:not(:empty) { background: #fff6bf; border: 3px solid var(--zoom-yellow); border-radius: 1.2rem; padding: 0.5rem 1rem; }
+
+/* Pequenas animações de resposta, que acontecem uma vez. */
+.done:not([hidden]), .winner:not(:empty) { animation: pop 0.45s ease-out; }
+.thumbs button { animation: pop 0.3s ease-out; }
+
+.confetti { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 50; }
+.confetti i { position: absolute; top: -20px; width: 10px; height: 16px; border-radius: 3px; animation: fall 2s ease-in forwards; }
+
+@keyframes orbit { to { transform: rotate(360deg); } }
+@keyframes chip { 0%, 100% { border-color: #087eaf; box-shadow: none; } 35%, 65% { border-color: #7cdaff; box-shadow: 0 0 7px #0082c680; } }
+@keyframes pins { 0%, 100% { opacity: 0.35; } 35%, 65% { opacity: 1; } }
+@keyframes rail { 0%, 20% { left: -60px; opacity: 0; } 25%, 85% { opacity: 1; } 100% { left: 110%; opacity: 0; } }
+@keyframes float { 50% { transform: translateY(-8px) rotate(-3deg); } }
+@keyframes wiggle { 25% { transform: rotate(-3deg) scale(1.04); } 75% { transform: rotate(3deg) scale(1.04); } }
+@keyframes pop { 0% { transform: scale(0.6); } 70% { transform: scale(1.08); } 100% { transform: scale(1); } }
+@keyframes fall { to { transform: translateY(105vh) rotate(540deg); } }
+
+html.calm *, html.calm *::before, html.calm *::after { animation: none !important; transition: none !important; }
+html.calm .confetti { display: none; }
+@media (max-width: 30rem) {
+  .brand .logo { width: 92px; height: 39px; }
+  .emblem { width: 3.25rem; height: 3.25rem; }
+  .brand .title { display: none; }
+}

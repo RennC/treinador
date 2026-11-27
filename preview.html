@@ -4,33 +4,37 @@
   <meta charset="utf-8">
   <base href="../../">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#007ec2">
+  <meta name="theme-color" content="#00679e">
   <title>Modelo publicado · Zoom Education</title>
   <link rel="icon" href="icon-192.png">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&amp;family=Montserrat:wght@400;600;700&amp;family=Poppins:wght@600&amp;display=swap" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&amp;display=swap" crossorigin="anonymous">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="marca.css">
 </head>
 <body>
   <header>
     <div class="brand">
-      <img src="brand/logo.webp" alt="Zoom Education for Life" width="157" height="40">
-      <span>Treinador de Modelos</span>
+      <img class="logo" src="brand/zoom-logo.svg" alt="ZOOM education for life" width="118" height="50">
+      <span class="emblem" aria-hidden="true"><img src="brand/clube-inovacao.png" alt=""><span class="chip"></span><span class="orbit"></span><span class="signal"></span></span>
+      <span class="title">Treinador de Modelos</span>
     </div>
+    <div class="rail" aria-hidden="true"></div>
   </header>
   <main class="single">
     <section id="previewPanel" class="panel">
       <h2>Modelo publicado</h2>
       <p>Link para usar no aplicativo:</p>
       <pre id="url"></pre>
-      <p id="status" class="muted" aria-live="polite">Carregando o modelo…</p>
+      <p id="status" class="help" aria-live="polite">Carregando o modelo…</p>
       <div id="previewCamera" class="camera" hidden><video playsinline muted autoplay></video><canvas id="overlay"></canvas></div>
       <img id="previewImage" class="preview-image" alt="Imagem testada" hidden>
-      <p id="listening" class="muted" hidden>Ouvindo… os resultados aparecem em cerca de 1 segundo.</p>
+      <p id="listening" class="help" hidden>Ouvindo… os resultados aparecem em cerca de 1 segundo.</p>
       <div class="row">
         <button id="previewToggle" disabled>Ligar câmera</button>
         <button id="previewSwitch" hidden>Trocar câmera</button>
         <label class="button disabled" id="previewFileLabel">Testar imagem <input id="previewFile" type="file" accept="image/*" hidden disabled></label>
       </div>
+      <p id="winner" class="winner" aria-live="polite"></p>
       <div id="predictions"></div>
     </section>
   </main>

@@ -1,8 +1,8 @@
 // Modo offline: guarda o app, as bibliotecas e os modelos base.
-const CACHE = 'treinador-v5';
+const CACHE = 'treinador-v6';
 // Caminhos relativos ao endereço do app, que no GitHub Pages fica em uma subpasta.
 const SHELL = ['./', 'styles.css', 'app.js', 'store.js', 'camera.js', 'cards.js', 'tester.js', 'results.js', 'home.js',
-  'publish.js', 'preview.js', 'preview.html', 'brand/logo.webp',
+  'publish.js', 'playground.js', 'preview.js', 'preview.html', 'brand/logo.webp',
   'engines/index.js', 'engines/common.js', 'engines/image.js', 'engines/pose.js', 'engines/audio.js',
   'manifest.webmanifest', 'icon-192.png', 'icon-512.png'].map(path => new URL(path, self.location).href);
 // TensorFlow.js 1.3.1: a biblioteca de pose não funciona com versões mais novas.

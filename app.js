@@ -8,6 +8,7 @@ import {
   githubSettings, checkSettings, saveGitHubSettings, forgetGitHub, testGitHub, repoName, siteUrl,
   publishToGitHub, publishToServer, previewPage, waitUntilLive,
 } from './publish.js';
+import { PLAYGROUND_URL, sendToPlayground, hasPlayground } from './playground.js';
 
 const $ = selector => document.querySelector(selector);
 const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -20,6 +21,7 @@ let busy = false;      // treinando ou publicando
 let saveTimer = null;
 let serverAvailable = false; // há um server.js atendendo este endereço
 let publication = 0;
+let playgroundAvailable = false; // há uma cópia do playground ao lado do app
 
 const engine = () => ENGINES[project.type];
 const labelOf = (cls, index) => cls.name.trim() || `Class ${index + 1}`;
@@ -162,6 +164,7 @@ function dataChanged() {
 // Orienta o próximo passo. Mensagens de resultado ou erro ficam até os dados mudarem.
 function updateStatus() {
   if ($('#downloadStatus')) $('#downloadStatus').hidden = true;
+  hidePlaygroundResult();
   let training = 'Pronto para treinar.';
   if (model && stale) training = 'As amostras mudaram. Treine novamente.';
   else if (project.classes.length < 2) training = 'Crie pelo menos 2 classes.';
@@ -237,6 +240,7 @@ async function train() {
   releaseMedia();
   discardModel();
   notify('');
+  hidePlaygroundResult();
   setBusy(true);
   document.body.classList.add('training');
   const status = $('#trainStatus');
@@ -360,6 +364,36 @@ async function download() {
 // O botão pode faltar por alguns minutos se o navegador ainda tiver a página antiga guardada.
 if ($('#downloadButton')) $('#downloadButton').onclick = download;
 
+// ---------- Enviar para o playground ----------
+
+function hidePlaygroundResult() {
+  if (!$('#playgroundStatus')) return;
+  $('#playgroundStatus').hidden = $('#playgroundLink').hidden = true;
+}
+
+async function toPlayground() {
+  if (busy || !model || stale) return;
+  const status = $('#playgroundStatus');
+  tester.stop();
+  setBusy(true);
+  hidePlaygroundResult();
+  status.hidden = false;
+  status.textContent = 'Enviando o modelo…';
+  try {
+    await sendToPlayground(await model.export(), project.name);
+    status.textContent = 'Modelo enviado. No playground, escreva modelo no bloco use model.';
+    // Um toque separado para abrir evita o bloqueio de janelas de alguns navegadores.
+    $('#playgroundLink').href = PLAYGROUND_URL;
+    $('#playgroundLink').hidden = false;
+  } catch (error) {
+    status.textContent = `Não foi possível enviar: ${error.message || error}`;
+  } finally {
+    setBusy(false);
+  }
+}
+
+if ($('#playgroundButton')) $('#playgroundButton').onclick = toPlayground;
+
 // ---------- Configuração do GitHub ----------
 
 const GITHUB_FIELDS = { owner: '#ghOwner', repo: '#ghRepo', branch: '#ghBranch', token: '#ghToken', site: '#ghSite' };
@@ -433,6 +467,12 @@ function refresh() {
     // Por enquanto o arquivo só é lido pelo atalho do RAISE, testado com modelos de imagem.
     downloadButton.hidden = project.type !== 'image';
     downloadButton.disabled = !ready;
+  }
+  const playgroundButton = $('#playgroundButton');
+  if (playgroundButton) {
+    // Protótipo: só modelos de imagem.
+    playgroundButton.hidden = !playgroundAvailable || project.type !== 'image';
+    playgroundButton.disabled = !ready;
   }
 
   const published = project.published;
@@ -518,6 +558,10 @@ async function start() {
 
   $('#publishKey').value = localStorage.getItem('publishKey') || '';
   fillGitHubForm();
+  hasPlayground().then(found => {
+    playgroundAvailable = found;
+    if (project) refresh();
+  });
   try {
     const response = await fetch('api/config');
     const config = response.ok ? await response.json() : null;
